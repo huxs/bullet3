@@ -44,7 +44,7 @@ btSimulationIslandManager::btSimulationIslandManager():
 m_splitIslands(true)
 {
     m_minimumSolverBatchSize = calcBatchCost(0, 128, 0);
-    m_batchIslandMinBodyCount = 32;
+    m_batchIslandMinBodyCount = 8;
     m_islandDispatch = defaultIslandDispatch;
     m_batchIsland = NULL;
 }
