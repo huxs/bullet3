@@ -1,2 +1,7 @@
-SUBDIRS( ExampleBrowser HelloWorld BasicDemo ThirdPartyLibs/Gwen OpenGLWindow)
-
+SUBDIRS( HelloWorld BasicDemo )
+IF(BUILD_BULLET3)
+	SUBDIRS( ExampleBrowser ThirdPartyLibs/Gwen ThirdPartyLibs/BussIK OpenGLWindow )
+ENDIF()
+IF(BUILD_PYBULLET)
+	SUBDIRS(pybullet)
+ENDIF(BUILD_PYBULLET)

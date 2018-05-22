@@ -62,12 +62,6 @@ protected:
 
 	btCollisionConfiguration*	m_collisionConfiguration;
 
-    btMutex m_manifoldPtrsMutex;
-    char m_cacheLinePadding1[ 63 ];
-    btMutex m_manifoldPoolMutex;
-    char m_cacheLinePadding2[ 63 ];
-    btMutex m_algPoolMutex;
-
 public:
 
 	enum DispatcherFlags

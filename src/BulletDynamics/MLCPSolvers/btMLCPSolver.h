@@ -42,7 +42,6 @@ protected:
 	btAlignedObjectArray<btSolverConstraint*>	m_allConstraintPtrArray;
 	btMLCPSolverInterface* m_solver;
 	int m_fallback;
-	btScalar m_cfm;
 
     /// The following scratch variables are not stateful -- contents are cleared prior to each use.
     /// They are only cached here to avoid extra memory allocations and deallocations and to ensure
@@ -82,15 +81,6 @@ public:
 	void setNumFallbacks(int num)
 	{
 		m_fallback = num;
-	}
-
-	btScalar	getCfm() const
-	{
-		return m_cfm;
-	}
-	void setCfm(btScalar cfm)
-	{
-		m_cfm = cfm;
 	}
 
 	virtual btConstraintSolverType	getSolverType() const

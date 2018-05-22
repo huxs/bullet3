@@ -79,13 +79,19 @@ protected:
 
 	int				m_islandTag1;
 	int				m_companionId;
+    int             m_uniqueId;
 
 	mutable int				m_activationState1;
 	mutable btScalar			m_deactivationTime;
 
 	btScalar		m_friction;
 	btScalar		m_restitution;
-	btScalar		m_rollingFriction;
+	btScalar		m_rollingFriction;//torsional friction orthogonal to contact normal (useful to stop spheres rolling forever)
+    btScalar        m_spinningFriction; // torsional friction around the contact normal (useful for grasping)
+	btScalar		m_contactDamping;
+	btScalar		m_contactStiffness;
+	
+	
 
 	///m_internalType is reserved to distinguish Bullet's btCollisionObject, btRigidBody, btSoftBody, btGhostObject etc.
 	///do not assign your own m_internalType unless you write a new dynamics object class.
@@ -93,8 +99,10 @@ protected:
 
 	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
 
-    void*			m_userObjectPointer;
-    
+	void*			m_userObjectPointer;
+
+	int				m_userIndex2;
+	
     int	m_userIndex;
 
 	///time of impact calculation
@@ -127,7 +135,8 @@ public:
 		CF_CUSTOM_MATERIAL_CALLBACK = 8,//this allows per-triangle material (friction/restitution)
 		CF_CHARACTER_OBJECT = 16,
 		CF_DISABLE_VISUALIZE_OBJECT = 32, //disable debug drawing
-		CF_DISABLE_SPU_COLLISION_PROCESSING = 64//disable parallel/SPU processing
+		CF_DISABLE_SPU_COLLISION_PROCESSING = 64,//disable parallel/SPU processing
+		CF_HAS_CONTACT_STIFFNESS_DAMPING = 128
 	};
 
 	enum	CollisionObjectTypes
@@ -316,8 +325,40 @@ public:
 	{
 		return m_rollingFriction;
 	}
-
-
+    void	setSpinningFriction(btScalar frict)
+    {
+        m_updateRevision++;
+        m_spinningFriction = frict;
+    }
+    btScalar	getSpinningFriction() const
+    {
+        return m_spinningFriction;
+    }
+    void	setContactStiffnessAndDamping(btScalar stiffness, btScalar damping)
+	{
+		m_updateRevision++;
+		m_contactStiffness = stiffness;
+		m_contactDamping = damping;
+		
+		m_collisionFlags |=CF_HAS_CONTACT_STIFFNESS_DAMPING;
+		
+        //avoid divisions by zero...
+		if (m_contactStiffness< SIMD_EPSILON)
+        {
+            m_contactStiffness = SIMD_EPSILON;
+        }
+	}
+	
+	btScalar	getContactStiffness() const
+	{
+		return m_contactStiffness;
+	}
+	
+	btScalar	getContactDamping() const
+	{
+		return m_contactDamping;
+	}
+    
 	///reserved for Bullet internal usage
 	int	getInternalType() const
 	{
@@ -415,7 +456,17 @@ public:
 		m_companionId = id;
 	}
 
-	SIMD_FORCE_INLINE btScalar			getHitFraction() const
+    SIMD_FORCE_INLINE int getUniqueId() const
+    {
+        return	m_uniqueId;
+    }
+
+    void	setUniqueId( int id )
+    {
+        m_uniqueId = id;
+    }
+
+    SIMD_FORCE_INLINE btScalar			getHitFraction() const
 	{
 		return m_hitFraction; 
 	}
@@ -476,6 +527,12 @@ public:
 	{
 		return m_userIndex;
 	}
+	
+	int	getUserIndex2() const
+	{
+		return m_userIndex2;
+	}
+	
 	///users can point to their objects, userPointer is not used by Bullet
 	void	setUserPointer(void* userPointer)
 	{
@@ -486,6 +543,11 @@ public:
 	void	setUserIndex(int index)
 	{
 		m_userIndex = index;
+	}
+	
+	void	setUserIndex2(int index)
+	{
+		m_userIndex2 = index;
 	}
 
 	int	getUpdateRevisionInternal() const
@@ -528,6 +590,8 @@ struct	btCollisionObjectDoubleData
 	double					m_deactivationTime;
 	double					m_friction;
 	double					m_rollingFriction;
+	double                  m_contactDamping;
+	double                  m_contactStiffness;
 	double					m_restitution;
 	double					m_hitFraction; 
 	double					m_ccdSweptSphereRadius;
@@ -561,7 +625,8 @@ struct	btCollisionObjectFloatData
 	float					m_deactivationTime;
 	float					m_friction;
 	float					m_rollingFriction;
-
+    float                   m_contactDamping;
+    float                   m_contactStiffness;
 	float					m_restitution;
 	float					m_hitFraction; 
 	float					m_ccdSweptSphereRadius;

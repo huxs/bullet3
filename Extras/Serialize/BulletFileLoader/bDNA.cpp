@@ -176,7 +176,8 @@ void bDNA::initCmpFlags(bDNA *memDNA)
 	// this ptr should be the file data
 
 
-	assert(!m_Names.size() == 0 && "SDNA empty!");
+	assert(!(m_Names.size() == 0));//DNA empty!
+
 	mCMPFlags.resize(mStructs.size(), FDF_NONE);
 
 
@@ -388,18 +389,10 @@ void bDNA::init(char *data, int len, bool swap)
 		cp++;
 	}
 
+
 	
-	{
-		nr= (long)cp;
-	//long mask=3;
-		nr= ((nr+3)&~3)-nr;
-		while (nr--)
-		{
-			cp++;
-		}
-	}
-
-
+	cp = btAlignPointer(cp,4);
+	
 	/*
 		TYPE (4 bytes)
 		<nr> amount of types (int)
@@ -425,17 +418,8 @@ void bDNA::init(char *data, int len, bool swap)
 		cp++;
 	}
 
-{
-		nr= (long)cp;
-	//	long mask=3;
-		nr= ((nr+3)&~3)-nr;
-		while (nr--)
-		{
-			cp++;
-		}
-	}
-
-
+	cp = btAlignPointer(cp,4);
+	
 	/*
 		TLEN (4 bytes)
 		<len> (short) the lengths of types

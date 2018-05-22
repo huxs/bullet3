@@ -81,14 +81,6 @@ const unsigned int BT_QUICKPROF_MAX_THREAD_COUNT = 64;
 #include "btAlignedAllocator.h"
 #include <new>
 
-
-
-
-
-
-
-
-
 ///A node in the Profile Hierarchy Tree
 class	CProfileNode {
 

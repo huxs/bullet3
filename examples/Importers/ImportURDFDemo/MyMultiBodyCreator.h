@@ -21,8 +21,10 @@ struct GenericConstraintUserInfo
 
 class MyMultiBodyCreator : public MultiBodyCreationInterface
 {
+protected:
 
 	btMultiBody* m_bulletMultiBody;
+	btRigidBody* m_rigidBody;
     
 	struct GUIHelperInterface* m_guiHelper;
 
@@ -43,7 +45,7 @@ public:
     ///optionally create some graphical representation from a collision object, usually for visual debugging purposes.
     virtual void createCollisionObjectGraphicsInstance(int linkIndex, class btCollisionObject* col, const btVector3& colorRgba);
     
-    virtual class btMultiBody* allocateMultiBody(int urdfLinkIndex, int totalNumJoints,btScalar mass, const btVector3& localInertiaDiagonal, bool isFixedBase, bool canSleep, bool multiDof);
+    virtual class btMultiBody* allocateMultiBody(int urdfLinkIndex, int totalNumJoints,btScalar mass, const btVector3& localInertiaDiagonal, bool isFixedBase, bool canSleep);
     
     virtual class btRigidBody* allocateRigidBody(int urdfLinkIndex, btScalar mass, const btVector3& localInertiaDiagonal, const btTransform& initialWorldTrans, class btCollisionShape* colShape);
     
@@ -61,6 +63,10 @@ public:
     virtual void addLinkMapping(int urdfLinkIndex, int mbLinkIndex);
 
 	btMultiBody* getBulletMultiBody();
+	btRigidBody* getRigidBody()
+	{
+	    return m_rigidBody;
+    }
 	
 	int	getNum6DofConstraints() const
 	{

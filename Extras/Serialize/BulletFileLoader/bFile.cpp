@@ -460,15 +460,7 @@ void bFile::swapDNA(char* ptr)
 	}
 
 	
-	{
-		nr= (long)cp;
-	//long mask=3;
-		nr= ((nr+3)&~3)-nr;
-		while (nr--)
-		{
-			cp++;
-		}
-	}
+	cp = btAlignPointer(cp,4);
 
 
 	/*
@@ -497,16 +489,7 @@ void bFile::swapDNA(char* ptr)
 		cp++;
 	}
 
-{
-		nr= (long)cp;
-	//	long mask=3;
-		nr= ((nr+3)&~3)-nr;
-		while (nr--)
-		{
-			cp++;
-		}
-	}
-
+	cp = btAlignPointer(cp,4);
 
 	/*
 		TLEN (4 bytes)
@@ -644,7 +627,7 @@ void bFile::preSwap()
 				swap(dataPtrHead, dataChunk,ignoreEndianFlag);
 			} else
 			{
-				printf("unknown chunk\n");
+				//printf("unknown chunk\n");
 			}
 		}
 
@@ -1224,7 +1207,7 @@ void bFile::resolvePointersMismatch()
 				int p = 0;
 				while (blockLen-- > 0)
 				{
-					btPointerUid dp = {0};
+					btPointerUid dp = {{0}};
 					safeSwapPtr((char*)dp.m_uniqueIds, oldPtr);
 
 					void **tptr = (void**)(newPtr + p * ptrMem);

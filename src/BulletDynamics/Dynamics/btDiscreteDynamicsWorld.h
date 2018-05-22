@@ -30,6 +30,7 @@ class btIDebugDraw;
 struct InplaceSolverIslandCallback;
 
 #include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btThreads.h"
 
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
@@ -37,8 +38,8 @@ struct InplaceSolverIslandCallback;
 ATTRIBUTE_ALIGNED16(class) btDiscreteDynamicsWorld : public btDynamicsWorld
 {
 protected:
-	
-    btAlignedObjectArray<btTypedConstraint*>	m_sortedConstraints;
+
+	btAlignedObjectArray<btTypedConstraint*>	m_sortedConstraints;
 	InplaceSolverIslandCallback* 	m_solverIslandCallback;
 
 	btConstraintSolver*	m_constraintSolver;
@@ -62,23 +63,23 @@ protected:
 	bool	m_applySpeculativeContactRestitution;
 
 	btAlignedObjectArray<btActionInterface*>	m_actions;
-	
+
 	int	m_profileTimings;
 
 	bool	m_latencyMotionStateInterpolation;
 
 	btAlignedObjectArray<btPersistentManifold*>	m_predictiveManifolds;
-    btMutex m_predictiveManifoldsMutex;
+	btSpinMutex m_predictiveManifoldsMutex;  // used to synchronize threads creating predictive contacts
 
 	virtual void	predictUnconstraintMotion(btScalar timeStep);
 
-    void integrateTransformsInternal( btRigidBody** bodies, int numBodies, btScalar timeStep ) const;  // can be called in parallel
+	void integrateTransformsInternal( btRigidBody** bodies, int numBodies, btScalar timeStep );  // can be called in parallel
 	virtual void	integrateTransforms(btScalar timeStep);
-		
+
 	virtual void	calculateSimulationIslands();
 
 	virtual void	solveConstraints(btContactSolverInfo& solverInfo);
-	
+
 	virtual void	updateActivationState(btScalar timeStep);
 
 	void	updateActions(btScalar timeStep);
@@ -87,9 +88,9 @@ protected:
 
 	virtual void	internalSingleStepSimulation( btScalar timeStep);
 
-    void releasePredictiveContacts();
-    void createPredictiveContactsInternal( btRigidBody** bodies, int numBodies, btScalar timeStep );  // can be called in parallel
-    virtual void	createPredictiveContacts( btScalar timeStep );
+	void releasePredictiveContacts();
+	void createPredictiveContactsInternal( btRigidBody** bodies, int numBodies, btScalar timeStep );  // can be called in parallel
+	virtual void	createPredictiveContacts(btScalar timeStep);
 
 	virtual void	saveKinematicState(btScalar timeStep);
 
@@ -123,7 +124,7 @@ public:
 	virtual void	addAction(btActionInterface*);
 
 	virtual void	removeAction(btActionInterface*);
-	
+
 	btSimulationIslandManager*	getSimulationIslandManager()
 	{
 		return m_islandManager;
@@ -162,19 +163,19 @@ public:
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
 
 	virtual btConstraintSolver* getConstraintSolver();
-	
+
 	virtual	int		getNumConstraints() const;
 
 	virtual btTypedConstraint* getConstraint(int index)	;
 
 	virtual const btTypedConstraint* getConstraint(int index) const;
 
-	
+
 	virtual btDynamicsWorldType	getWorldType() const
 	{
 		return BT_DISCRETE_DYNAMICS_WORLD;
 	}
-	
+
 	///the forces on each rigidbody is accumulating together with gravity. clear this after each timestep.
 	virtual void	clearForces();
 
@@ -183,7 +184,7 @@ public:
 
 	virtual void	setNumTasks(int numTasks)
 	{
-        (void) numTasks;
+		(void) numTasks;
 	}
 
 	///obsolete, use updateActions instead
@@ -214,7 +215,7 @@ public:
 	{
 		m_applySpeculativeContactRestitution = enable;
 	}
-	
+
 	bool getApplySpeculativeContactRestitution() const
 	{
 		return m_applySpeculativeContactRestitution;
