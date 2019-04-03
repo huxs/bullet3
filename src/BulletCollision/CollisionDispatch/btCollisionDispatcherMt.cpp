@@ -62,8 +62,10 @@ btPersistentManifold* btCollisionDispatcherMt::getNewManifold(const btCollisionO
 		// batch updater will update manifold pointers array after finishing, so
 		// only need to update array when not batch-updating
 		//btAssert( !btThreadsAreRunning() );
+		btMutexLock( &m_manifoldsMutex );
 		manifold->m_index1a = m_manifoldsPtr.size();
 		m_manifoldsPtr.push_back(manifold);
+		btMutexUnlock( &m_manifoldsMutex );
 	}
 
 	return manifold;
@@ -77,11 +79,13 @@ void btCollisionDispatcherMt::releaseManifold(btPersistentManifold* manifold)
 	{
 		// batch updater will update manifold pointers array after finishing, so
 		// only need to update array when not batch-updating
+		btMutexLock( &m_manifoldsMutex );
 		int findIndex = manifold->m_index1a;
 		btAssert(findIndex < m_manifoldsPtr.size());
 		m_manifoldsPtr.swap(findIndex, m_manifoldsPtr.size() - 1);
 		m_manifoldsPtr[findIndex]->m_index1a = findIndex;
 		m_manifoldsPtr.pop_back();
+		btMutexUnlock( &m_manifoldsMutex );
 	}
 
 	manifold->~btPersistentManifold();

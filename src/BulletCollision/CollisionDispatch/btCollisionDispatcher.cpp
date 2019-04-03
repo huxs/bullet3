@@ -92,8 +92,10 @@ btPersistentManifold* btCollisionDispatcher::getNewManifold(const btCollisionObj
 		}
 	}
 	btPersistentManifold* manifold = new (mem) btPersistentManifold(body0, body1, 0, contactBreakingThreshold, contactProcessingThreshold);
+	btMutexLock( &m_manifoldsMutex );
 	manifold->m_index1a = m_manifoldsPtr.size();
 	m_manifoldsPtr.push_back(manifold);
+	btMutexUnlock( &m_manifoldsMutex );
 
 	return manifold;
 }
@@ -108,11 +110,13 @@ void btCollisionDispatcher::releaseManifold(btPersistentManifold* manifold)
 	//printf("releaseManifold: gNumManifold %d\n",gNumManifold);
 	clearManifold(manifold);
 
+	btMutexLock( &m_manifoldsMutex );
 	int findIndex = manifold->m_index1a;
 	btAssert(findIndex < m_manifoldsPtr.size());
 	m_manifoldsPtr.swap(findIndex, m_manifoldsPtr.size() - 1);
 	m_manifoldsPtr[findIndex]->m_index1a = findIndex;
 	m_manifoldsPtr.pop_back();
+	btMutexUnlock( &m_manifoldsMutex );
 
 	manifold->~btPersistentManifold();
 	if (m_persistentManifoldPoolAllocator->validPtr(manifold))
